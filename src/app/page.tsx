@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import ResetBridge from './ResetBridge';
+import ResetBridge from './reset/ResetBridge';
 
 // Evita el prerender estático para esta página (opcional pero recomendable)
 export const dynamic = 'force-dynamic';

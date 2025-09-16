@@ -5,35 +5,31 @@ import { useSearchParams } from 'next/navigation';
 
 /**
  * Ajusta estos valores a tu app:
- * - SCHEME: esquema personalizado que declaraste en Android/iOS.
- * - PKG:    packageName Android (para intent:// en Chrome Android).
- * - HOSTTXT: solo se usa para mostrar ejemplos en la UI.
+ * - SCHEME: esquema de tu deep link (debe coincidir con el AndroidManifest).
+ * - PKG:    packageName Android (para intent:// en Chrome/Android).
+ * - HOSTTXT: solo para mostrar el ejemplo en la UI.
  */
 const SCHEME = 'casa_segura'; // coincide con <data android:scheme="casa_segura" android:host="reset" />
 const PKG = 'com.example.flutter_seguridad_en_casa';
-const HOSTTXT = 'tu-proyecto.vercel.app';
+const HOSTTXT = 'redireccion-home-6rj5hjz68.vercel.app';
 
-export default function ResetBridge() {
+export default function ResetCallbackPage() {
   const params = useSearchParams();
 
-  // Appwrite añade userId y secret al Recovery URL
+  // Appwrite añade estos query params a la Recovery URL
   const userId = params.get('userId');
   const secret = params.get('secret');
 
-  // Deep link principal a la app nativa
+  // Deep link principal a la app nativa: casa_segura://reset?userId=...&secret=...
   const deepLink = useMemo(() => {
     if (!userId || !secret) return null;
-    return `${SCHEME}://reset?userId=${encodeURIComponent(
-      userId
-    )}&secret=${encodeURIComponent(secret)}`;
+    return `${SCHEME}://reset?userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}`;
   }, [userId, secret]);
 
   // Fallback intent:// para Chrome/Android
   const intentLink = useMemo(() => {
     if (!userId || !secret) return null;
-    return `intent://reset?userId=${encodeURIComponent(
-      userId
-    )}&secret=${encodeURIComponent(
+    return `intent://reset?userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(
       secret
     )}#Intent;scheme=${SCHEME};package=${PKG};end`;
   }, [userId, secret]);
@@ -43,8 +39,7 @@ export default function ResetBridge() {
   useEffect(() => {
     if (!deepLink) return;
 
-    const ua =
-      typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
     const isAndroid = ua.includes('android');
     const isChrome = ua.includes('chrome');
 
@@ -52,11 +47,11 @@ export default function ResetBridge() {
     if (isAndroid && isChrome && intentLink) {
       window.location.replace(intentLink);
     } else {
-      // 2) En el resto intentamos directamente el esquema
+      // 2) En el resto: intentamos directamente el esquema
       window.location.replace(deepLink);
     }
 
-    // Si la página sigue visible, mostramos fallback para reintentar
+    // Si la página sigue visible después de 1.5s, mostramos fallback
     const t = setTimeout(() => {
       if (!document.hidden) setShowFallback(true);
     }, 1500);
@@ -78,21 +73,16 @@ export default function ResetBridge() {
           <>
             <p className="text-sm text-zinc-700 dark:text-zinc-300">
               Esta URL debe incluir los parámetros <code className="font-mono">userId</code> y{' '}
-              <code className="font-mono">secret</code>. Abre el enlace desde el correo
-              de recuperación enviado por Appwrite.
+              <code className="font-mono">secret</code>. Abre el enlace desde el correo de recuperación enviado por Appwrite.
             </p>
             <p className="text-xs mt-3 text-zinc-500">
               Ejemplo:{' '}
-              <code className="font-mono">
-                https://{HOSTTXT}/reset-callback?userId=...&amp;secret=...
-              </code>
+              <code className="font-mono">https://{HOSTTXT}/reset-callback?userId=...&amp;secret=...</code>
             </p>
           </>
         ) : (
           <>
-            <p className="text-sm text-zinc-700 dark:text-zinc-300">
-              Intentando abrir tu app automáticamente…
-            </p>
+            <p className="text-sm text-zinc-700 dark:text-zinc-300">Intentando abrir tu app automáticamente…</p>
             <p className="text-xs mt-2 text-zinc-500 break-all">
               Deep link: <span className="font-mono">{deepLink}</span>
             </p>
@@ -114,11 +104,10 @@ export default function ResetBridge() {
                   <li>Verifica que la app esté instalada.</li>
                   <li>
                     En Android, el esquema <code className="font-mono">{SCHEME}://</code> y el{' '}
-                    <code className="font-mono">host=&quot;reset&quot;</code> deben existir en el
-                    AndroidManifest.
+                    <code className="font-mono">host="reset"</code> deben existir en tu AndroidManifest.
                   </li>
                   <li>
-                    En Appwrite, la Recovery URL debe ser{' '}
+                    En Appwrite, la <em>Recovery URL</em> debe ser{' '}
                     <code className="font-mono">https://{HOSTTXT}/reset-callback</code>.
                   </li>
                 </ul>
