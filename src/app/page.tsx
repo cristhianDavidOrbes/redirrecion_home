@@ -4,24 +4,23 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 /**
- * Ajusta estos valores a tu app:
- *
- * - SCHEME:   tu esquema personalizado (debe coincidir con el AndroidManifest y con iOS).
- * - PKG:      el packageName Android (se usa para URL "intent://" en Chrome/Android).
- * - HOSTTXT:  texto informativo con tu dominio de Vercel (opcional, solo para UI).
+ * Ajusta estos valores a tu app.
+ * - SCHEME:   tu esquema (debe coincidir con Android/iOS).
+ * - PKG:      packageName Android (para intent:// en Chrome/Android).
+ * - HOSTTXT:  solo para mostrar info en la UI.
  */
-const SCHEME = 'casa_segura'; // <— coincide con <data android:scheme="casa_segura" android:host="reset" />
+const SCHEME = 'casa_segura'; // coincide con <data android:scheme="casa_segura" android:host="reset" />
 const PKG = 'com.example.flutter_seguridad_en_casa';
 const HOSTTXT = 'tu-proyecto.vercel.app';
 
 export default function ResetCallbackPage() {
   const params = useSearchParams();
 
-  // Appwrite añade estos query params al Recovery URL:
+  // Appwrite añade estos parámetros al Recovery URL
   const userId = params.get('userId');
   const secret = params.get('secret');
 
-  // Deep link principal hacia la app nativa
+  // Deep link principal a la app nativa
   const deepLink = useMemo(() => {
     if (!userId || !secret) return null;
     return `${SCHEME}://reset?userId=${encodeURIComponent(
@@ -29,11 +28,10 @@ export default function ResetCallbackPage() {
     )}&secret=${encodeURIComponent(secret)}`;
   }, [userId, secret]);
 
-  // Fallback "intent://" (Android Chrome) — opcional
+  // Fallback intent:// (Android Chrome)
   const intentLink = useMemo(() => {
     if (!userId || !secret) return null;
-    // Formato: intent://<host o path>?<qs>#Intent;scheme=<scheme>;package=<pkg>;end
-    // Como tu scheme usa host "reset", construimos: intent://reset?userId=...#Intent;scheme=casa_segura;package=...;end
+    // intent://reset?userId=...&secret=...#Intent;scheme=casa_segura;package=com.example...;end
     return `intent://reset?userId=${encodeURIComponent(
       userId
     )}&secret=${encodeURIComponent(
@@ -46,20 +44,20 @@ export default function ResetCallbackPage() {
   useEffect(() => {
     if (!deepLink) return;
 
-    // Detección simple
-    const ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
+    const ua =
+      typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
     const isAndroid = ua.includes('android');
     const isChrome = ua.includes('chrome');
 
-    // 1) En Android/Chrome probamos primero con la URL "intent://"
+    // 1) Android/Chrome -> intent://
     if (isAndroid && isChrome && intentLink) {
       window.location.replace(intentLink);
     } else {
-      // 2) En el resto (iOS/otros) intentamos directo con el esquema
+      // 2) Resto -> esquema personalizado
       window.location.replace(deepLink);
     }
 
-    // Si la página sigue visible luego de 1.5s, mostramos fallback
+    // Si la página sigue visible tras 1.5s, mostramos fallback
     const t = setTimeout(() => {
       if (!document.hidden) setShowFallback(true);
     }, 1500);
@@ -81,11 +79,14 @@ export default function ResetCallbackPage() {
           <>
             <p className="text-sm text-zinc-700 dark:text-zinc-300">
               Esta URL debe incluir los parámetros <code className="font-mono">userId</code> y{' '}
-              <code className="font-mono">secret</code>. Abre el enlace desde el correo de
-              recuperación enviado por Appwrite.
+              <code className="font-mono">secret</code>. Abre el enlace desde el
+              correo de recuperación enviado por Appwrite.
             </p>
             <p className="text-xs mt-3 text-zinc-500">
-              Ejemplo: <code className="font-mono">https://{HOSTTXT}/reset-callback?userId=...&amp;secret=...</code>
+              Ejemplo:{' '}
+              <code className="font-mono">
+                https://{HOSTTXT}/reset-callback?userId=...&amp;secret=...
+              </code>
             </p>
           </>
         ) : (
@@ -113,8 +114,8 @@ export default function ResetCallbackPage() {
                 <ul className="text-xs mt-3 text-zinc-600 dark:text-zinc-400 list-disc pl-5 space-y-1">
                   <li>Verifica que la app esté instalada.</li>
                   <li>
-                    En Android, el esquema <code className="font-mono">{SCHEME}://</code> y el
-                    <code className="font-mono"> host="reset"</code> deben existir en el
+                    En Android, el esquema <code className="font-mono">{SCHEME}://</code> y el{' '}
+                    <code className="font-mono">host=&quot;reset&quot;</code> deben existir en el
                     AndroidManifest (ya lo tienes).
                   </li>
                   <li>
