@@ -9,7 +9,7 @@ import { useSearchParams } from 'next/navigation';
  * - PKG:    packageName Android (para intent:// en Chrome/Android).
  * - HOSTTXT: solo para mostrar el ejemplo en la UI.
  */
-const SCHEME = 'casa_segura'; // coincide con <data android:scheme="casa_segura" android:host="reset" />
+const SCHEME = 'casasegura'; // coincide con <data android:scheme="casa_segura" android:host="reset" />
 const PKG = 'com.example.flutter_seguridad_en_casa';
 const HOSTTXT = 'redirrecion-home.vercel.app';
 
