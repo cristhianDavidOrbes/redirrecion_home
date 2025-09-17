@@ -11,22 +11,19 @@ import { useSearchParams } from 'next/navigation';
  */
 const SCHEME = 'casa_segura'; // coincide con <data android:scheme="casa_segura" android:host="reset" />
 const PKG = 'com.example.flutter_seguridad_en_casa';
-const HOSTTXT = 'redireccion-home-6rj5hjz68.vercel.app';
+const HOSTTXT = 'redirrecion-home.vercel.app';
 
 export default function ResetCallbackPage() {
   const params = useSearchParams();
 
-  // Appwrite añade estos query params a la Recovery URL
   const userId = params.get('userId');
   const secret = params.get('secret');
 
-  // Deep link principal a la app nativa: casa_segura://reset?userId=...&secret=...
   const deepLink = useMemo(() => {
     if (!userId || !secret) return null;
     return `${SCHEME}://reset?userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(secret)}`;
   }, [userId, secret]);
 
-  // Fallback intent:// para Chrome/Android
   const intentLink = useMemo(() => {
     if (!userId || !secret) return null;
     return `intent://reset?userId=${encodeURIComponent(userId)}&secret=${encodeURIComponent(
@@ -43,15 +40,12 @@ export default function ResetCallbackPage() {
     const isAndroid = ua.includes('android');
     const isChrome = ua.includes('chrome');
 
-    // 1) En Android/Chrome usamos intent://
     if (isAndroid && isChrome && intentLink) {
       window.location.replace(intentLink);
     } else {
-      // 2) En el resto: intentamos directamente el esquema
       window.location.replace(deepLink);
     }
 
-    // Si la página sigue visible después de 1.5s, mostramos fallback
     const t = setTimeout(() => {
       if (!document.hidden) setShowFallback(true);
     }, 1500);
@@ -77,7 +71,7 @@ export default function ResetCallbackPage() {
             </p>
             <p className="text-xs mt-3 text-zinc-500">
               Ejemplo:{' '}
-              <code className="font-mono">https://{HOSTTXT}/reset-callback?userId=...&amp;secret=...</code>
+              <code className="font-mono">https://{HOSTTXT}/reset?userId=...&amp;secret=...</code>
             </p>
           </>
         ) : (
@@ -104,11 +98,11 @@ export default function ResetCallbackPage() {
                   <li>Verifica que la app esté instalada.</li>
                   <li>
                     En Android, el esquema <code className="font-mono">{SCHEME}://</code> y el{' '}
-                    <code className="font-mono">host="reset"</code> deben existir en tu AndroidManifest.
+                    <code className="font-mono">host=&quot;reset&quot;</code> deben existir en tu AndroidManifest.
                   </li>
                   <li>
                     En Appwrite, la <em>Recovery URL</em> debe ser{' '}
-                    <code className="font-mono">https://{HOSTTXT}/reset-callback</code>.
+                    <code className="font-mono">https://{HOSTTXT}/reset</code>.
                   </li>
                 </ul>
               </div>
